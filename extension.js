@@ -15,7 +15,6 @@ const xw = 52;
 const xh = 60;
 let xFloat;
 let timeout;
-let loop = 0;
 
 const Indicator = GObject.registerClass(
 	class Indicator extends PanelMenu.Button {
@@ -23,6 +22,7 @@ const Indicator = GObject.registerClass(
 			super._init(0.0, _(Me.metadata['name']));
 			this.resource = Gio.Resource.load(Me.path + '/res.gresource');
 			this.resource._register();
+			this.loop = 0;
 
 			this.add_child(new St.Icon({
 				gicon : Gio.icon_new_for_string("resource:///img/1.gif"),
@@ -41,26 +41,26 @@ const Indicator = GObject.registerClass(
 			this._canvas.set_size(xw, xh);
 			xFloat.set_content(this._canvas);
 			xFloat.set_position(0, this.randomY());
-			timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 300, () => {
-				loop = (loop + 1) % 4;
+			timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 200, () => {
+				this.loop = (this.loop + 1) % 4;
 				this._canvas.invalidate();
 				return GLib.SOURCE_CONTINUE;
 			});
-			xFloat.connect("button-press-event",
-				(a) => {
+			xFloat.connect("button-press-event", (a) => {
+				if (a.get_position()[0] == 0) {
 					this.horizontalMove(a);
-					return Clutter.EVENT_STOP;
-				});
+				}
+				return Clutter.EVENT_STOP;
+			});
 		}
 
 		on_draw(canvas, ctx, width, height) {
-			let xx = 2520;
-			const yy = 67;
+			const xx = 2520 + this.loop * xw;
+			const yy = this.loop % 2 ? 67 - 5 : 67;
 			ctx.setOperator(Cairo.Operator.CLEAR);
 			ctx.paint();
 			ctx.setOperator(Cairo.Operator.SOURCE);
-
-			Gdk.cairo_set_source_pixbuf(ctx, this.pb, -(xx + loop * 52), -yy);
+			Gdk.cairo_set_source_pixbuf(ctx, this.pb, -xx, -yy);
 			ctx.paint();
 		};
 
@@ -70,7 +70,7 @@ const Indicator = GObject.registerClass(
 
 			a.ease({
 				x : newX,
-				duration : 20000,
+				duration : 30000,
 				mode : Clutter.AnimationMode.LINEAR,
 				onComplete : () => {
 					a.set_position(0, this.randomY());
@@ -78,8 +78,10 @@ const Indicator = GObject.registerClass(
 			});
 		};
 
-		randomY(){
-			return Math.ceil(Math.random() * monitor.height - 80);
+		randomY() {
+			let Y = Math.ceil(Math.random() * monitor.height);
+			if (Y > monitor.height - xh) { Y = monitor.height - xh; }
+			return Y;
 		};
 	});
 

@@ -102,6 +102,7 @@ class Extension {
 			timeout = null;
 		}
 		Main.layoutManager.removeChrome(xFloat);
+		xFloat = null;
 		this._indicator.destroy();
 		this._indicator = null;
 	}

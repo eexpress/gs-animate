@@ -1,0 +1,9 @@
+{
+  "name": "animate",
+  "description": "animate",
+  "uuid": "animate@eexpss.gmail.com",
+  "gettext-domain": "animate",
+  "shell-version": [
+    "42"
+  ]
+}

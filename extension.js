@@ -11,8 +11,8 @@ const _ = ExtensionUtils.gettext;
 const monitor = Main.layoutManager.primaryMonitor;
 const _domain = Me.metadata['gettext-domain'];
 function lg(s) { log("===" + _domain + "===>" + s); }
-const xw = 52;
-const xh = 60;
+const xw = 60;
+const xh = 70;
 let xFloat;
 let timeout;
 
@@ -23,13 +23,14 @@ const Indicator = GObject.registerClass(
 			this.resource = Gio.Resource.load(Me.path + '/res.gresource');
 			this.resource._register();
 			this.loop = 0;
+			//~ lg("start");
 
 			this.add_child(new St.Icon({
 				gicon : Gio.icon_new_for_string("resource:///img/1.gif"),
 				style_class : 'system-status-icon',
 			}));
 
-			this.pb = GdkPixbuf.Pixbuf.new_from_resource("/img/kr4_humans.png");
+			this.pb = GdkPixbuf.Pixbuf.new_from_resource("/img/sort.png");
 			xFloat = new Clutter.Actor({
 				name : 'xFloat',
 				reactive : true,
@@ -42,7 +43,7 @@ const Indicator = GObject.registerClass(
 			xFloat.set_content(this._canvas);
 			xFloat.set_position(0, this.randomY());
 			timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 200, () => {
-				this.loop = (this.loop + 1) % 4;
+				this.loop = (this.loop + 1) % 6;	// 6个动作一组
 				this._canvas.invalidate();
 				return GLib.SOURCE_CONTINUE;
 			});
@@ -55,8 +56,9 @@ const Indicator = GObject.registerClass(
 		}
 
 		on_draw(canvas, ctx, width, height) {
-			const xx = 2520 + this.loop * xw;
-			const yy = this.loop % 2 ? 67 - 5 : 67;
+			const xx = 0 + this.loop * xw;
+			lg(xx);
+			const yy = 0;
 			ctx.setOperator(Cairo.Operator.CLEAR);
 			ctx.paint();
 			ctx.setOperator(Cairo.Operator.SOURCE);

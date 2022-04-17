@@ -11,8 +11,9 @@ const _ = ExtensionUtils.gettext;
 const monitor = Main.layoutManager.primaryMonitor;
 const _domain = Me.metadata['gettext-domain'];
 function lg(s) { log("===" + _domain + "===>" + s); }
-const xw = 60;
-const xh = 70;
+// png 图片中的单元格尺寸。
+const wGrid = 60;
+const hGrid = 70;
 let xFloat;
 let timeout;
 
@@ -22,28 +23,36 @@ const Indicator = GObject.registerClass(
 			super._init(0.0, _(Me.metadata['name']));
 			this.resource = Gio.Resource.load(Me.path + '/res.gresource');
 			this.resource._register();
-			this.loop = 0;
+			// 横向循环显示的偏移位置基数。6个动作一组。
+			this.colPNG = 0;
+			// 在 png 中的第几行，前三行为侧面，背面，正面。最后一行攻击，尺寸不标准，暂时不用。
+			this.rowPNG = 0;
+			//~ this.rowPNG = 1;
+			//~ this.rowPNG = 2;
 			//~ lg("start");
 
 			this.add_child(new St.Icon({
 				gicon : Gio.icon_new_for_string("resource:///img/1.gif"),
 				style_class : 'system-status-icon',
 			}));
+			this.connect("button-press-event", (actor, event) => {
+				xFloat.visible = !xFloat.visible;
+			});
 
 			this.pb = GdkPixbuf.Pixbuf.new_from_resource("/img/sort.png");
 			xFloat = new Clutter.Actor({
 				name : 'xFloat',
 				reactive : true,
-				width : xw,
-				height : xh,
+				width : wGrid,
+				height : hGrid,
 			});
 			this._canvas = new Clutter.Canvas();
 			this._canvas.connect('draw', this.on_draw.bind(this));
-			this._canvas.set_size(xw, xh);
+			this._canvas.set_size(wGrid, hGrid);
 			xFloat.set_content(this._canvas);
 			xFloat.set_position(0, this.randomY());
 			timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 200, () => {
-				this.loop = (this.loop + 1) % 6;	// 6个动作一组
+				this.colPNG = (this.colPNG + 1) % 6;  // 6个动作一组
 				this._canvas.invalidate();
 				return GLib.SOURCE_CONTINUE;
 			});
@@ -56,9 +65,8 @@ const Indicator = GObject.registerClass(
 		}
 
 		on_draw(canvas, ctx, width, height) {
-			const xx = 0 + this.loop * xw;
-			lg(xx);
-			const yy = 0;
+			const xx = 0 + this.colPNG * wGrid;
+			const yy = 0 + this.rowPNG * hGrid;
 			ctx.setOperator(Cairo.Operator.CLEAR);
 			ctx.paint();
 			ctx.setOperator(Cairo.Operator.SOURCE);
@@ -67,12 +75,12 @@ const Indicator = GObject.registerClass(
 		};
 
 		horizontalMove(a) {
-			let [xPos, yPos] = a.get_position();
+			//~ let [xPos, yPos] = a.get_position();
 			let newX = monitor.width;
 
 			a.ease({
 				x : newX,
-				duration : 30000,
+				duration : 10000,
 				mode : Clutter.AnimationMode.LINEAR,
 				onComplete : () => {
 					a.set_position(0, this.randomY());
@@ -82,7 +90,7 @@ const Indicator = GObject.registerClass(
 
 		randomY() {
 			let Y = Math.ceil(Math.random() * monitor.height);
-			if (Y > monitor.height - xh) { Y = monitor.height - xh; }
+			if (Y > monitor.height - hGrid) { Y = monitor.height - hGrid; }
 			return Y;
 		};
 	});

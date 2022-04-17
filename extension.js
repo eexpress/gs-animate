@@ -30,8 +30,8 @@ const Indicator = GObject.registerClass(
 			this.connect("button-press-event", (actor, event) => {
 				xFloat.visible = !xFloat.visible;
 			});
-			this.connect("scroll-event", (actor, event) => {
-				const max = 4;
+			this.connect("scroll-event", (actor, event) => {	//滚轮切换动作
+				const max = 4;	//只认4个动作
 				switch (event.get_scroll_direction()) {
 				case Clutter.ScrollDirection.DOWN:
 					this.fn++;
@@ -86,7 +86,6 @@ const Indicator = GObject.registerClass(
 
 		horizontalMove(a) {
 			let newX = monitor.width;
-
 			a.ease({
 				x : newX,
 				duration : 10000,

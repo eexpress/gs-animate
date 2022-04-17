@@ -11,9 +11,7 @@ const _ = ExtensionUtils.gettext;
 const monitor = Main.layoutManager.primaryMonitor;
 const _domain = Me.metadata['gettext-domain'];
 function lg(s) { log("===" + _domain + "===>" + s); }
-// png 图片中的单元格尺寸。
-const wGrid = 60;
-const hGrid = 70;
+
 let xFloat;
 let timeout;
 
@@ -21,38 +19,42 @@ const Indicator = GObject.registerClass(
 	class Indicator extends PanelMenu.Button {
 		_init() {
 			super._init(0.0, _(Me.metadata['name']));
-			this.resource = Gio.Resource.load(Me.path + '/res.gresource');
-			this.resource._register();
-			// 横向循环显示的偏移位置基数。6个动作一组。
+			// 使用 png 通用格式，内部为方块横向排列，按照图片高度，确定动作帧数。
 			this.colPNG = 0;
-			// 在 png 中的第几行，前三行为侧面，背面，正面。最后一行攻击，尺寸不标准，暂时不用。
-			this.rowPNG = 0;
-			//~ this.rowPNG = 1;
-			//~ this.rowPNG = 2;
-			//~ lg("start");
+			this.fn = 1;
 
 			this.add_child(new St.Icon({
-				gicon : Gio.icon_new_for_string("resource:///img/1.gif"),
+				gicon : Gio.icon_new_for_string(Me.path + "/img/1.gif"),
 				style_class : 'system-status-icon',
 			}));
 			this.connect("button-press-event", (actor, event) => {
 				xFloat.visible = !xFloat.visible;
 			});
+			this.connect("scroll-event", (actor, event) => {
+				const max = 4;
+				switch (event.get_scroll_direction()) {
+				case Clutter.ScrollDirection.DOWN:
+					this.fn++;
+					if (this.fn > max) { this.fn = 1; }
+					break;
+				case Clutter.ScrollDirection.UP:
+					this.fn--;
+					if (this.fn < 1) { this.fn = max; }
+					break;
+				}
+				this.reload(this.fn);
+			});
 
-			this.pb = GdkPixbuf.Pixbuf.new_from_resource("/img/sort.png");
 			xFloat = new Clutter.Actor({
 				name : 'xFloat',
 				reactive : true,
-				width : wGrid,
-				height : hGrid,
 			});
 			this._canvas = new Clutter.Canvas();
 			this._canvas.connect('draw', this.on_draw.bind(this));
-			this._canvas.set_size(wGrid, hGrid);
 			xFloat.set_content(this._canvas);
-			xFloat.set_position(0, this.randomY());
+			this.reload(this.fn);
 			timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 200, () => {
-				this.colPNG = (this.colPNG + 1) % 6;  // 6个动作一组
+				this.colPNG = (this.colPNG + 1) % this.cnt;
 				this._canvas.invalidate();
 				return GLib.SOURCE_CONTINUE;
 			});
@@ -64,18 +66,25 @@ const Indicator = GObject.registerClass(
 			});
 		}
 
+		reload(fn) {
+			this.pb = GdkPixbuf.Pixbuf.new_from_file(`${Me.path}/img/${fn.toString()}.png`);
+			this.XY = this.pb.height;
+			this.cnt = Math.round(this.pb.width / this.XY);
+			xFloat.width = this.XY;
+			xFloat.height = this.XY;
+			this._canvas.set_size(this.XY, this.XY);
+			xFloat.set_position(0, this.randomY());
+		};
+
 		on_draw(canvas, ctx, width, height) {
-			const xx = 0 + this.colPNG * wGrid;
-			const yy = 0 + this.rowPNG * hGrid;
 			ctx.setOperator(Cairo.Operator.CLEAR);
 			ctx.paint();
 			ctx.setOperator(Cairo.Operator.SOURCE);
-			Gdk.cairo_set_source_pixbuf(ctx, this.pb, -xx, -yy);
+			Gdk.cairo_set_source_pixbuf(ctx, this.pb, -this.colPNG * this.XY, 0);
 			ctx.paint();
 		};
 
 		horizontalMove(a) {
-			//~ let [xPos, yPos] = a.get_position();
 			let newX = monitor.width;
 
 			a.ease({
@@ -90,7 +99,7 @@ const Indicator = GObject.registerClass(
 
 		randomY() {
 			let Y = Math.ceil(Math.random() * monitor.height);
-			if (Y > monitor.height - hGrid) { Y = monitor.height - hGrid; }
+			if (Y > monitor.height - this.XY) { Y = monitor.height - this.XY; }
 			return Y;
 		};
 	});

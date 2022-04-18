@@ -1,8 +1,9 @@
 {
   "name": "animate",
-  "description": "animate, useless cartoon man run thr the screen.",
+  "description": "Animated small man run through the screen. Scroll mouse can change deferent character. You can use your PNG characters instead of the original ones.",
   "uuid": "animate@eexpss.gmail.com",
   "gettext-domain": "animate",
+  "url": "https://github.com/eexpress/gs-animate",
   "shell-version": [
     "42"
   ]

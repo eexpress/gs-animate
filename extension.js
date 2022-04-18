@@ -24,7 +24,7 @@ const Indicator = GObject.registerClass(
 			this.fn = 1;
 
 			this.add_child(new St.Icon({
-				gicon : Gio.icon_new_for_string(Me.path + "/img/1.gif"),
+				gicon : Gio.icon_new_for_string(Me.path + "/img/0.gif"),
 				style_class : 'system-status-icon',
 			}));
 			this.connect("button-press-event", (actor, event) => {
@@ -68,6 +68,7 @@ const Indicator = GObject.registerClass(
 
 		reload(fn) {
 			this.pb = GdkPixbuf.Pixbuf.new_from_file(`${Me.path}/img/${fn.toString()}.png`);
+			if (this.pb == null) return;
 			this.XY = this.pb.height;
 			this.cnt = Math.round(this.pb.width / this.XY);
 			xFloat.width = this.XY;

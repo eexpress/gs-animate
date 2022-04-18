@@ -5,6 +5,8 @@
   "gettext-domain": "animate",
   "url": "https://github.com/eexpress/gs-animate",
   "shell-version": [
+	"40",
+	"41",
     "42"
   ]
 }

@@ -90,7 +90,7 @@ const Indicator = GObject.registerClass(
 			a.ease({
 				x : newX,
 				duration : 10000,
-				mode : Clutter.AnimationMode.LINEAR,
+				mode : Math.floor(Math.random() * Clutter.AnimationMode.ANIMATION_LAST),
 				onComplete : () => {
 					a.set_position(0, this.randomY());
 				}

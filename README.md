@@ -6,3 +6,5 @@ gnome shell extension animate
 You can self define your own png to replace with those 4 png files locate at `~/.local/share/gnome-shell/extensions/animate@eexpss.gmail.com/img`.
 
 ![](example.png)
+
+If you have funny character png, I glad to add into the extension.

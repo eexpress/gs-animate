@@ -54,8 +54,10 @@ const Indicator = GObject.registerClass(
 			xFloat.set_content(this._canvas);
 			this.reload(this.fn);
 			timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 200, () => {
-				this.colPNG = (this.colPNG + 1) % this.cnt;
-				this._canvas.invalidate();
+				if (xFloat.x > 0 && xFloat.visible){	// 起始位置不动，不显示不刷新。
+					this.colPNG = (this.colPNG + 1) % this.cnt;	// 循环显示位置
+					this._canvas.invalidate();	// 刷新显示区
+				}
 				return GLib.SOURCE_CONTINUE;
 			});
 			xFloat.connect("button-press-event", (a) => {
